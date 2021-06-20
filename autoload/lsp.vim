@@ -48,11 +48,11 @@ endfunction
 
 function! lsp#enable() abort
     if s:enabled
-        return
+        "return
     endif
     if !s:already_setup
         doautocmd <nomodeline> User lsp_setup
-        let s:already_setup = 1
+        "let s:already_setup = 1
     endif
     let s:enabled = 1
     if g:lsp_signature_help_enabled
@@ -405,6 +405,7 @@ function! s:ensure_start(buf, server_name, cb) abort
         return
     endif
 
+    " TODO: (goto-defintion) breaks the named servers
     let l:server = s:servers[a:server_name]
     let l:server_info = l:server['server_info']
     if l:server['lsp_id'] > 0
@@ -919,7 +920,22 @@ function! lsp#get_allowed_servers(...) abort
         if has_key(l:server_info, l:allowlistkey)
             for l:filetype in l:server_info[l:allowlistkey]
                 if l:filetype ==? l:buffer_filetype || l:filetype ==# '*'
-                    let l:active_servers += [l:server_name]
+                    "call lsp#log("server_name:",l:server_name)
+                    let l:srvsplit = split(l:server_name, '#')
+                    if len(l:srvsplit) > 1 && l:filetype == 'go'
+                     if l:srvsplit[1] == lsp_settings#root_uri('gopls')
+                       call lsp#log("server_name uden gopls?", l:server_name)
+                       let l:active_servers += [l:server_name]
+                     "else
+                     "  call lsp#log("TEST:")
+                     "  call lsp#log("server_name:", lsp_settings#root_uri('gopls'))
+                     "  let l:active_servers += ['gopls#'.lsp_settings#root_uri('gopls')]
+                     endif
+                    else
+                      let l:active_servers += [l:server_name]
+                    endif
+                    "lsp_settings#root_uri('gopls')
+                    "let l:active_servers += [l:server_name]
                     break
                 endif
             endfor

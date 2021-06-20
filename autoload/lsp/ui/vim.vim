@@ -64,11 +64,21 @@ function! s:list_location(method, ctx, ...) abort
         call extend(l:params, a:1)
     endif
     for l:server in l:servers
-        call lsp#send_request(l:server, {
-            \ 'method': 'textDocument/' . a:method,
-            \ 'params': l:params,
-            \ 'on_notification': function('s:handle_location', [l:ctx, l:server, l:operation]),
-            \ })
+        call lsp#log("l:server: ", l:server)
+        let l:srvsplit = split(l:server, '#')
+        if len(l:srvsplit) > 1 && l:srvsplit[1] == lsp_settings#root_uri('gopls')
+          call lsp#send_request(l:server, {
+                \ 'method': 'textDocument/' . a:method,
+                \ 'params': l:params,
+                \ 'on_notification': function('s:handle_location', [l:ctx, l:server, l:operation]),
+                \ })
+        else
+          call lsp#send_request(l:server, {
+                \ 'method': 'textDocument/' . a:method,
+                \ 'params': l:params,
+                \ 'on_notification': function('s:handle_location', [l:ctx, l:server, l:operation]),
+                \ })
+        endif
     endfor
 
     echo printf('Retrieving %s ...', l:operation)
